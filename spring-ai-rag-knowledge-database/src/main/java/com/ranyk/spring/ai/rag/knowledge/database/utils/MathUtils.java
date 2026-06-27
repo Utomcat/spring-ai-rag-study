@@ -13,6 +13,7 @@ import java.util.Objects;
  * @date: 2026-06-24
  */
 @Slf4j
+@SuppressWarnings("unused")
 public class MathUtils {
 
     /**
@@ -153,7 +154,7 @@ public class MathUtils {
          * @param type 距离类型, int 类型, 1: 欧氏距离; 2: 余弦距离; 其他: 其他距离类型;
          * @return 距离类型名称, String 类型
          */
-        public static String getNameByType(int type){
+        public static String getNameByType(int type) {
             return switch (type) {
                 case 1 -> "欧式距离";
                 case 2 -> "余弦距离";
