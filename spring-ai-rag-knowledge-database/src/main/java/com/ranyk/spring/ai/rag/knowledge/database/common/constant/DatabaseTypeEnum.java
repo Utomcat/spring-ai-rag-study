@@ -209,5 +209,5 @@ public enum DatabaseTypeEnum {
     /**
      * 非关系型数据库(NOSQL) - 搜索数据库 - FoundationDB
      */
-    FOUNDATION;
+    FOUNDATION
 }
