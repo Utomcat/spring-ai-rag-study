@@ -60,6 +60,7 @@ public class RedisAndRedisVectorStoreConfiguration {
     /**
      * 创建 RedisVectorStore 对象
      *
+     * @param redisClient           Redis 客户端 {@link RedisClient} 对象
      * @param embeddingModel        嵌入模型 {@link EmbeddingModel} 对象
      * @param observationRegistry   观察注册表 {@link ObservationRegistry} 对象
      * @param observationConvention 观察惯例 {@link VectorStoreObservationConvention} 对象
@@ -68,27 +69,12 @@ public class RedisAndRedisVectorStoreConfiguration {
      */
     @Bean
     public RedisVectorStore redisVectorStore(
+            RedisClient redisClient,
             EmbeddingModel embeddingModel,
             ObjectProvider<ObservationRegistry> observationRegistry,
             ObjectProvider<VectorStoreObservationConvention> observationConvention,
             ObjectProvider<BatchingStrategy> batchingStrategy) {
-        RedisVectorStore.Builder builder = RedisVectorStore.builder(RedisClient
-                        .builder()
-                        .hostAndPort(
-                                // 设置 Redis 主机地址
-                                dataRedisProperties.getHost(),
-                                // 设置 Redis 端口号
-                                dataRedisProperties.getPort()
-                        )
-                        .clientConfig(DefaultJedisClientConfig
-                                .builder()
-                                // 设置 Redis 用户名
-                                .user(dataRedisProperties.getUsername())
-                                // 设置 Redis 密码
-                                .password(dataRedisProperties.getPassword())
-                                .build()
-                        )
-                        .build(), embeddingModel)
+        RedisVectorStore.Builder builder = RedisVectorStore.builder(redisClient, embeddingModel)
                 // 设置是否初始化
                 .initializeSchema(redisVectorStoreProperties.isInitializeSchema())
                 // 设置索引名称
@@ -104,5 +90,31 @@ public class RedisAndRedisVectorStoreConfiguration {
         // 设置批处理策略
         batchingStrategy.ifUnique(builder::batchingStrategy);
         return builder.build();
+    }
+
+    /**
+     * 创建 Jedis 的 RedisClient 的 Bean 实例对象
+     *
+     * @return {@link RedisClient} 对象
+     */
+    @Bean
+    public RedisClient redisClient() {
+        return RedisClient
+                .builder()
+                .hostAndPort(
+                        // 设置 Redis 主机地址
+                        dataRedisProperties.getHost(),
+                        // 设置 Redis 端口号
+                        dataRedisProperties.getPort()
+                )
+                .clientConfig(DefaultJedisClientConfig
+                        .builder()
+                        // 设置 Redis 用户名
+                        .user(dataRedisProperties.getUsername())
+                        // 设置 Redis 密码
+                        .password(dataRedisProperties.getPassword())
+                        .build()
+                )
+                .build();
     }
 }

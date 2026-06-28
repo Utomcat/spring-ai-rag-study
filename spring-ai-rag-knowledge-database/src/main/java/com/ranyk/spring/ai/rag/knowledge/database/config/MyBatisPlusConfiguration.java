@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerIntercep
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.ranyk.spring.ai.rag.knowledge.database.config.properties.HikariDataSourceProperties;
+import com.ranyk.spring.ai.rag.knowledge.database.handle.MyBatisPlusMetaObjectHandler;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,5 +121,15 @@ public class MyBatisPlusConfiguration {
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
         // SQL 性能规范插件/ 非法 SQL 拦截插件 - 插件 IllegalSQLInnerInterceptor 在 3.5.10 版本开始移除
         return interceptor;
+    }
+
+    /**
+     * 配置 MyBatis Plus 的元对象处理器, 用于处理 MyBatis Plus 的元对象操作，如插入、更新、删除等
+     *
+     * @return MyBatis Plus 的元对象处理器 {@link MyBatisPlusMetaObjectHandler}
+     */
+    @Bean
+    public MyBatisPlusMetaObjectHandler myBatisPlusMetaObjectHandler() {
+        return new MyBatisPlusMetaObjectHandler();
     }
 }
