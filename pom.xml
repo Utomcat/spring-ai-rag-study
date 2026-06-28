@@ -351,6 +351,7 @@
                         <!--<arg>-Amapstruct.verbose=true</arg>-->
                         <!--<arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>-->
                         <!--<arg>-Amapstruct.suppressGeneratorVersionInfoComment=true</arg>-->
+                        <!--<compilerArg>-Xlint:unchecked</compilerArg>-->
                     </compilerArgs>
                 </configuration>
             </plugin>
