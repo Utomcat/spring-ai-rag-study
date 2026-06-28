@@ -1,4 +1,4 @@
-package com.ranyk.spring.ai.rag.knowledge.database.domain.log.dto;
+package com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.dto;
 
 import com.ranyk.spring.ai.rag.knowledge.database.base.domain.dto.BaseDTO;
 import lombok.*;
@@ -7,12 +7,12 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serial;
 
 /**
- * CLASS_NAME: SystemLogDTO.java
+ * CLASS_NAME: ChatSessionDTO.java
  *
  * @author ranyk
  * @version V1.0
- * @description: 系统日志数据传输 DTO 类
- * @date: 2026-06-27
+ * @description: 聊天会话数据封装传输 DTO 类
+ * @date: 2026-06-28
  */
 @Data
 @SuperBuilder
@@ -20,20 +20,16 @@ import java.io.Serial;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class SystemLogDTO extends BaseDTO<SystemLogDTO> {
+public class ChatSessionDTO extends BaseDTO<ChatSessionDTO> {
     @Serial
-    private static final long serialVersionUID = 6177698916764656815L;
+    private static final long serialVersionUID = 5002469535938942938L;
 
     /**
      * 用户ID
      */
     private Long userId;
     /**
-     * 动作描述
+     * 会话标题
      */
-    private String action;
-    /**
-     * IP
-     */
-    private String ip;
+    private String title;
 }

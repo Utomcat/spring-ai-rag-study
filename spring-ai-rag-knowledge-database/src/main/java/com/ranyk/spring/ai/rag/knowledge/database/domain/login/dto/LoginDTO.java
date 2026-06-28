@@ -21,7 +21,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class LoginDTO extends BaseDTO {
+public class LoginDTO extends BaseDTO<LoginDTO> {
 
     @Serial
     private static final long serialVersionUID = -6509347428965680176L;

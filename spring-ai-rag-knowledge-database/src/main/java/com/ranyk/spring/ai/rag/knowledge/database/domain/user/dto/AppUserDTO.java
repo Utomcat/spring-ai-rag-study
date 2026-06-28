@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class AppUserDTO extends BaseDTO {
+public class AppUserDTO extends BaseDTO<AppUserDTO> {
     @Serial
     private static final long serialVersionUID = -7960461784712375879L;
     /**
@@ -58,5 +58,17 @@ public class AppUserDTO extends BaseDTO {
      * 登录令牌
      */
     private String token;
+    /**
+     * 查询条件关键字
+     */
+    private String keyword;
+    /**
+     * 旧密码
+     */
+    private String oldPassword;
+    /**
+     * 新密码
+     */
+    private String newPassword;
 
 }
