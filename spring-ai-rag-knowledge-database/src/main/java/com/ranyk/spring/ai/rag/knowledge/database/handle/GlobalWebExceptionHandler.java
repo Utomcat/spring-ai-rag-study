@@ -1,6 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.handle;
 
-import com.ranyk.spring.ai.rag.knowledge.database.common.domain.vo.Result;
+import com.ranyk.spring.ai.rag.knowledge.database.base.domain.vo.Result;
 import com.ranyk.spring.ai.rag.knowledge.database.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
