@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +51,6 @@ public class FileStorageService {
      *
      * @param file 文件对象
      * @return 文件存储信息
-     * @throws IOException 如果文件上传过程中发生 I/O 错误, 则抛出 I/O 异常
      */
     public StoredFile upload(MultipartFile file) {
         try {
