@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.mapstruct;
 
-import com.ranyk.spring.ai.rag.knowledge.database.base.domain.po.PageQueryPO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.dto.ChatSessionDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.entity.ChatSession;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.po.ChatSessionQueryPO;
@@ -10,7 +9,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CLASS_NAME: ChatSessionMapper.java
@@ -54,25 +52,23 @@ public interface ChatSessionMapper {
     List<ChatSessionDTO> chatSessionListToChatSessionDTOList(List<ChatSession> chatSessionList);
 
     /**
-     * 将 {@link PageQueryPO} 对象转换为 {@link ChatSessionDTO} 对象
+     * 将 {@link ChatSessionQueryPO} 对象转换为 {@link ChatSessionDTO} 对象
      *
-     * @param pageQueryPO 分页查询数据传输对象 {@link PageQueryPO}
+     * @param chatSessionQueryPO 聊天会话查询数据对象 {@link ChatSessionQueryPO}
      * @return 聊天会话数据传输对象 {@link ChatSessionDTO}
      */
-    default ChatSessionDTO pageQueryPOToChatSessionDTO(PageQueryPO<ChatSessionQueryPO> pageQueryPO) {
-        if (Objects.isNull(pageQueryPO) || Objects.isNull(pageQueryPO.condition())) {
-            return ChatSessionDTO.builder().build();
-        }
-        // 获取查询条件封装 PO 对象
-        ChatSessionQueryPO condition = pageQueryPO.condition();
-        // 构建 CategoryDTO 对象
-        return ChatSessionDTO.builder()
-                .userId(condition.userId())
-                .title(condition.title())
-                .size(pageQueryPO.size())
-                .page(pageQueryPO.page())
-                .build();
-    }
+    @Mappings({
+            @Mapping(target = "createBy", ignore = true),
+            @Mapping(target = "createTime", ignore = true),
+            @Mapping(target = "updateBy", ignore = true),
+            @Mapping(target = "updateTime", ignore = true),
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "dataList", ignore = true),
+            @Mapping(target = "page", ignore = true),
+            @Mapping(target = "size", ignore = true),
+            @Mapping(target = "total", ignore = true)
+    })
+    ChatSessionDTO chatSessionQueryPOToChatSessionDTO(ChatSessionQueryPO chatSessionQueryPO);
 
     /**
      * 将 {@link ChatSessionDTO} 对象转换为 {@link ChatSessionVO} 对象

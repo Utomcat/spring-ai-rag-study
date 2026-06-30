@@ -52,10 +52,12 @@ public class ChatSessionApi {
      * @return 分页查询结果 {@link MultiResult}&lt;{@link ChatSessionVO}&gt;
      */
     @GetMapping
-    public MultiResult<ChatSessionVO> sessions(PageQueryPO<ChatSessionQueryPO> pageQueryPO) {
+    public MultiResult<ChatSessionVO> sessions(PageQueryPO pageQueryPO, ChatSessionQueryPO chatSessionQueryPO) {
         var u = SecurityUtils.requireUser();
-        ChatSessionDTO sessionDTO = chatSessionMapper.pageQueryPOToChatSessionDTO(pageQueryPO);
+        ChatSessionDTO sessionDTO = chatSessionMapper.chatSessionQueryPOToChatSessionDTO(chatSessionQueryPO);
         sessionDTO.setUserId(u.getUserId());
+        sessionDTO.setPage(pageQueryPO.page());
+        sessionDTO.setSize(pageQueryPO.size());
         ChatSessionDTO chatSessionDTO = chatSessionService.listSessions(sessionDTO);
         return MultiResult.successMulti(chatSessionMapper.chatSessionDTOToChatSessionVOList(chatSessionDTO.getDataList()), chatSessionDTO.getTotal(), chatSessionDTO.getPage(), chatSessionDTO.getSize());
     }
