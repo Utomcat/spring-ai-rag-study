@@ -51,8 +51,11 @@ public class CategoryApi {
      * 查询请求 - 依据条件查询知识库分类信息
      */
     @GetMapping
-    public MultiResult<CategoryVO> list(@RequestBody @Valid PageQueryPO<CategoryQueryPO> pageQueryPO) {
-        CategoryDTO categoryDTO = categoryService.listAll(categoryMapper.pageQueryPOToCategoryDTO(pageQueryPO));
+    public MultiResult<CategoryVO> list(PageQueryPO pageQueryPO, CategoryQueryPO categoryQueryPO) {
+        CategoryDTO query = categoryMapper.categoryQueryPOToCategoryDTO(categoryQueryPO);
+        query.setPage(pageQueryPO.page());
+        query.setSize(pageQueryPO.size());
+        CategoryDTO categoryDTO = categoryService.listAll(query);
         return MultiResult.successMulti(categoryMapper.categoryDTOListToCategoryVOList(categoryDTO.getDataList()), categoryDTO.getTotal(), categoryDTO.getPage(), categoryDTO.getSize());
     }
 

@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.category.mapstruct;
 
-import com.ranyk.spring.ai.rag.knowledge.database.base.domain.po.PageQueryPO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.category.dto.CategoryDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.category.entity.Category;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.category.po.CategoryQueryPO;
@@ -11,7 +10,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CLASS_NAME: CategoryMapper.java
@@ -26,27 +24,23 @@ import java.util.Objects;
 public interface CategoryMapper {
 
     /**
-     * 将 分页查询 PO 对象 {@link PageQueryPO} 转换为 知识库分类数据传输 DTO 对象 {@link CategoryDTO}
+     * 将 知识库分类查询 PO 对象 {@link CategoryQueryPO} 转换为 知识库分类数据传输 DTO 对象 {@link CategoryDTO}
      *
-     * @param pageQueryPO 分页查询 PO 对象 {@link PageQueryPO}
+     * @param categoryQueryPO 知识库分类查询 PO 对象 {@link CategoryQueryPO}
      * @return 知识库分类数据传输 DTO 对象 {@link CategoryDTO}
      */
-    default CategoryDTO pageQueryPOToCategoryDTO(PageQueryPO<CategoryQueryPO> pageQueryPO) {
-        if (Objects.isNull(pageQueryPO) || Objects.isNull(pageQueryPO.condition())) {
-            return CategoryDTO.builder().build();
-        }
-        // 获取查询条件封装 PO 对象
-        CategoryQueryPO condition = pageQueryPO.condition();
-        // 构建 CategoryDTO 对象
-        return CategoryDTO.builder()
-                .name(condition.name())
-                .description(condition.description())
-                .icon(condition.icon())
-                .sortOrder(condition.sortOrder())
-                .size(pageQueryPO.size())
-                .page(pageQueryPO.page())
-                .build();
-    }
+    @Mappings({
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "createBy", ignore = true),
+            @Mapping(target = "createTime", ignore = true),
+            @Mapping(target = "updateBy", ignore = true),
+            @Mapping(target = "updateTime", ignore = true),
+            @Mapping(target = "dataList", ignore = true),
+            @Mapping(target = "page", ignore = true),
+            @Mapping(target = "size", ignore = true),
+            @Mapping(target = "total", ignore = true)
+    })
+    CategoryDTO categoryQueryPOToCategoryDTO(CategoryQueryPO categoryQueryPO);
 
     /**
      * 将 知识库分类数据传输 DTO 对象 {@link CategoryDTO} 转换为 知识库分类数据视图 VO 对象 {@link CategoryVO}
