@@ -112,6 +112,8 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
             document.setFileSize(file.fileSize());
             document.setStatus("PROCESSING");
             document.setVectorCount(0);
+            document.setCreateBy(documentDTO.getUploadUserId());
+            document.setUpdateBy(documentDTO.getUploadUserId());
             return document;
         }).toList();
 
@@ -130,6 +132,7 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
                 int n = ragIngestService.ingest(Path.of(document.getAbsolutePath()), document.getFileType(), document.getId(), documentDTO.getCategoryId(), document.getTitle());
                 document.setVectorCount(n);
                 document.setStatus("SUCCESS");
+                document.setUpdateBy(documentDTO.getUploadUserId());
             });
         } catch (Exception e) {
             log.error("知识库文档向量化处理失败, 异常信息为: {}", e.getMessage());
@@ -172,7 +175,6 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
      * 知识库文档文件、数据库数据、向量库数据 删除
      *
      * @param id 知识库文档 ID
-     * @return 逻辑处理结果 {@link Boolean}
      */
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {

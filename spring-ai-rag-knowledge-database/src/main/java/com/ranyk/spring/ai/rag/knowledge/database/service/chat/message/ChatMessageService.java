@@ -129,7 +129,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         // 本次聊天的会话 ID
         Long sessionId = chatMessageDTO.getSessionId();
         // 不存在会话 ID, 则创建一个会话
-        if (Objects.isNull(sessionId)) {
+        if (Objects.isNull(sessionId) || Objects.equals(0L, sessionId)) {
             String question = chatMessageDTO.getQuestion().trim();
             question = question.length() > 30 ? question.substring(0, 30) + "…" : question;
             ChatSessionDTO chatSessionDTO = chatSessionService.saveSessionInfo(ChatSessionDTO.builder().userId(chatMessageDTO.getUserId()).title(question).build());
@@ -141,7 +141,18 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             }
         }
         long t0 = System.nanoTime();
-        List<Document> cited = retrieveForCategories(chatMessageDTO.getQuestion(), chatMessageDTO.getCategoryIds());
+        List<Document> cited;
+        try {
+            cited = retrieveForCategories(chatMessageDTO.getQuestion(), chatMessageDTO.getCategoryIds());
+        } catch (Exception e) {
+            log.error("向量检索发生异常, 异常信息为: {}", e.getMessage());
+            if (Objects.equals("No such index knowledge_database_index", e.getMessage())) {
+                log.error("当前检索向量库中暂时没有文件!");
+                return ChatMessageDTO.builder().sessionId(sessionId).answer("当前检索向量库中暂时没有文件, 当前会话为无效会话, 暂不入库存储, 请联系管理员进行文档上传后再进行检索查询!").references(new ArrayList<>()).build();
+            } else {
+                return ChatMessageDTO.builder().sessionId(sessionId).answer("向量检索发生异常 %s , 当前会话为无效会话, 暂不入库存储, 请联系管理员进行文档上传后再进行检索查询!".formatted(e.getMessage())).references(new ArrayList<>()).build();
+            }
+        }
         long retrievalMs = (System.nanoTime() - t0) / 1_000_000L;
         log.info("RAG 向量检索完成 sessionId={} 命中块数={} 耗时={}ms", sessionId, cited.size(), retrievalMs);
         String userTurn = buildRagUserMessage(chatMessageDTO.getQuestion(), cited);
@@ -161,7 +172,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                 .sessionId(sessionId)
                 .role("USER")
                 .content(chatMessageDTO.getQuestion())
-                .refs("-")
+                .refs("[]")  // 用户消息没有引用,使用空 JSON 数组
                 .build();
         this.saveOrUpdate(userChatMessage);
 
