@@ -1,5 +1,7 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.document.vo;
 
+import java.time.LocalDateTime;
+
 /**
  * CLASS_NAME: DocumentVO.java
  *
@@ -17,6 +19,7 @@ package com.ranyk.spring.ai.rag.knowledge.database.domain.document.vo;
  *     <li>status: 文档状态</li>
  *     <li>vectorCount: 文档向量数量</li>
  *     <li>uploadUserId: 上传用户 ID</li>
+ *     <li>createTime: 创建时间</li>
  * </ul>
  * @date: 2026-06-28
  */
@@ -29,5 +32,6 @@ public record DocumentVO(Long id,
                          String fileSize,
                          String status,
                          Integer vectorCount,
-                         Long uploadUserId) {
+                         Long uploadUserId,
+                         LocalDateTime createTime) {
 }

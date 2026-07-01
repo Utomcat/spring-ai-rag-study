@@ -1,5 +1,7 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.category.vo;
 
+import java.time.LocalDateTime;
+
 /**
  * CLASS_NAME: CategoryVO.java
  *
@@ -12,8 +14,9 @@ package com.ranyk.spring.ai.rag.knowledge.database.domain.category.vo;
  *     <li>description: 分类描述</li>
  *     <li>icon: 分类图标</li>
  *     <li>sortOrder: 分类排序</li>
+ *     <li>createTime: 创建时间</li>
  * </ul>
  * @date: 2026-06-27
  */
-public record CategoryVO(Long id, String name, String description, String icon, Integer sortOrder) {
+public record CategoryVO(Long id, String name, String description, String icon, Integer sortOrder, LocalDateTime createTime) {
 }
