@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.utils;
 
+import com.ranyk.spring.ai.rag.knowledge.database.common.constant.FileCategoryEnum;
 import com.ranyk.spring.ai.rag.knowledge.database.common.constant.FileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -29,14 +30,14 @@ public class DocumentParseUtils {
      * TikaDocumentReader 支持的文件后缀集合
      */
     private static final Set<String> TIKA_SUPPORTED_SUFFIXES = Set.copyOf(
-            FileTypeEnum.getSuffixList(FileTypeEnum.TEXT, FileTypeEnum.WORD, FileTypeEnum.PDF)
+            FileTypeEnum.getSuffixesByCategory(FileCategoryEnum.DOCUMENT, FileTypeEnum.MARKDOWN)
     );
 
     /**
      * MarkdownDocumentReader 支持的文件后缀集合
      */
     private static final Set<String> MARKDOWN_SUPPORTED_SUFFIXES = Set.copyOf(
-            FileTypeEnum.getSuffixList(FileTypeEnum.MARKDOWN)
+            FileTypeEnum.MARKDOWN.getSuffix()
     );
 
     /**
@@ -85,8 +86,10 @@ public class DocumentParseUtils {
      */
     private static DocumentReader selectReader(String suffix, File file) {
         return switch (suffix) {
-            case String s when TIKA_SUPPORTED_SUFFIXES.contains(s) -> new TikaDocumentReader(new FileSystemResource(file));
-            case String s when MARKDOWN_SUPPORTED_SUFFIXES.contains(s) -> new MarkdownDocumentReader(file.toURI().toString());
+            case String s when TIKA_SUPPORTED_SUFFIXES.contains(s) ->
+                    new TikaDocumentReader(new FileSystemResource(file));
+            case String s when MARKDOWN_SUPPORTED_SUFFIXES.contains(s) ->
+                    new MarkdownDocumentReader(file.toURI().toString());
             default -> {
                 log.info("文件格式 {} , 暂未开发解析处理, 敬请期待!", suffix);
                 throw new IllegalArgumentException("文件格式 %s , 暂未开发解析处理, 敬请期待!".formatted(suffix));
