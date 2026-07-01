@@ -21,7 +21,8 @@ import org.springframework.context.annotation.Configuration;
         FileProperties.class,
         JwtProperties.class,
         CorsProperties.class,
-        RdbProperties.class
+        RdbProperties.class,
+        DocSplitterProperties.class,
 })
 public class ApplicationConfiguration {
 }
