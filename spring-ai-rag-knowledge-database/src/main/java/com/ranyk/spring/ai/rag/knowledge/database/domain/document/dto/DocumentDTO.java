@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
+import java.util.List;
 
 /**
  * CLASS_NAME: DocumentDTO.java
@@ -71,4 +72,12 @@ public class DocumentDTO extends BaseDTO<DocumentDTO> {
      * 查询条件关键字数据
      */
     private String keyword;
+    /**
+     * 查询条件分类ID List 集合
+     */
+    private List<Long> categoryIds;
+    /**
+     * 查询条件文件类型 List 集合
+     */
+    private List<String> fileTypes;
 }
