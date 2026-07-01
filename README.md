@@ -562,29 +562,89 @@ flowchart TD
 
 ## 配置文件说明
 
-项目采用多配置文件拆分，通过 `application.yml` 的 `spring.config.import` 引入：
+项目采用多配置文件拆分模式，通过 `application.yml` 的 `spring.config.import` 引入各模块配置，避免主配置文件过于臃肿：
 
-- `application.yml` - 主配置（服务端口、应用名称）
-- `mybatis-plus.yml` - MyBatis Plus 配置
-- `rdb-datasource.yml` - MySQL 数据源配置
-- `vdb-datasource.yml` - Redis 向量存储配置
-- `nrdb-datasource.yml` - 非关系型数据库配置
-- `llm-model.yml` - Ollama LLM 及 Embedding 模型配置
-- `jwt.yml` - JWT 密钥和过期时间配置
-- `file.yml` - 文件上传路径配置
-- `language.yml` - 国际化配置
-- `log.yml` - 日志级别配置
-- `rdb.yml` - 关系型数据库 ORM 配置（跳过自动填充表等）
+| 配置文件                  | 说明              | 关键配置项                                                      |
+|-----------------------|-----------------|------------------------------------------------------------|
+| `application.yml`     | 主配置             | 服务端口（8083）、应用名称                                            |
+| `mybatis-plus.yml`    | MyBatis Plus 配置 | ORM 框架基础配置                                                 |
+| `rdb-datasource.yml`  | 关系型数据库数据源       | MySQL/MariaDB 连接信息、HikariCP 连接池                            |
+| `nrdb-datasource.yml` | 非关系型数据库数据源      | Redis 连接信息                                                 |
+| `vdb-datasource.yml`  | 向量数据库数据源        | Redis Vector Store 配置                                      |
+| `llm-model.yml`       | LLM 模型配置        | Ollama 服务地址、LLM 模型（phi4-mini）、Embedding 模型（embeddinggemma） |
+| `jwt.yml`             | JWT 配置          | 密钥、Token 过期时间                                              |
+| `file.yml`            | 文件上传配置          | 上传文件存储根路径、文件大小限制                                           |
+| `doc-splitter.yml`    | 文档分割配置          | 文档切分块大小、重叠字符数                                              |
+| `system.yml`          | 系统配置            | 系统级参数配置                                                    |
+| `language.yml`        | 国际化配置           | 默认语言、支持的语言列表                                               |
+| `log.yml`             | 日志配置            | 日志级别、日志输出格式                                                |
+| `rdb.yml`             | 关系型数据库 ORM 配置   | 自动填充跳过表配置等                                                 |
+
+### 配置文件结构
+
+```yaml
+spring:
+  config:
+    import:
+      - classpath:mybatis-plus.yml        # MyBatis-Plus 配置
+      - classpath:nrdb-datasource.yml     # 非关系型数据库数据源配置
+      - classpath:rdb-datasource.yml      # 关系型数据库数据源配置
+      - classpath:vdb-datasource.yml      # 向量数据库数据源配置
+      - classpath:llm-model.yml           # LLM 模型配置
+      - classpath:file.yml                # 文件和文件上传相关配置
+      - classpath:language.yml            # 语言配置
+      - classpath:log.yml                 # 日志配置
+      - classpath:jwt.yml                 # JWT 配置
+      - classpath:rdb.yml                 # 关系型数据库配置
+      - classpath:doc-splitter.yml        # 文档分割配置
+      - classpath:system.yml              # 系统配置
+```
 
 ## 快速开始
 
 ### 前置条件
 
-1. JDK 21
-2. Maven 3.8+
-3. MySQL 8.0+ 或 MariaDB 10.5+
-4. Redis 6.0+（支持向量搜索）
-5. Ollama（已部署并运行，已拉取 phi4-mini 和 embeddinggemma 模型）
+#### 必需环境
+
+| 环境/工具      | 版本要求                     | 说明                                       |
+|------------|--------------------------|------------------------------------------|
+| **JDK**    | 21+                      | 项目基于 Java 21 开发，使用虚拟线程等特性                |
+| **Maven**  | 3.8+                     | 项目构建工具                                   |
+| **MySQL**  | 8.0+ 或 **MariaDB** 10.5+ | 关系型数据库，存储用户、文档元数据、聊天记录等                  |
+| **Redis**  | 6.0+                     | 向量数据库（Redis Vector Store），用于文档向量存储与相似度检索 |
+| **Ollama** | 最新版                      | 本地 Embedding 模型服务（仅用于文档向量化）              |
+| **OpenAI 兼容 API** | -              | LLM 聊天模型服务（如小米 Mimo、DeepSeek、智谱等）       |
+
+#### 模型准备
+
+**1. Ollama Embedding 模型（必需）**
+
+启动 Ollama 服务后，需要拉取 Embedding 模型用于文档向量化：
+
+```bash
+# 拉取 Embedding 模型（用于文档向量化）
+ollama pull embeddinggemma:latest
+```
+
+**2. OpenAI 兼容 API 的 LLM 模型（必需）**
+
+项目使用 OpenAI 兼容 API 调用 LLM 聊天模型（如小米 Mimo、DeepSeek、智谱等），需要：
+
+1. 获取 API Key
+2. 在 `llm-model.yml` 中配置：
+   - `spring.ai.openai.api-key` - 你的 API Key
+   - `spring.ai.openai.base-url` - API 基础 URL（如 `https://api.xiaomimimo.com/v1`）
+   - `spring.ai.openai.chat.model` - 聊天模型名称（如 `mimo-v2.5-pro-ultraspeed`）
+
+> **注意**：项目默认配置使用小米 Mimo API，你可以根据需要替换为其他 OpenAI 兼容的 API 服务。
+
+#### 可选工具
+
+| 工具                   | 说明                          |
+|----------------------|-----------------------------|
+| **MySQL Client**     | 用于执行数据库初始化脚本                |
+| **Postman / Apifox** | API 接口测试工具                  |
+| **IDE**              | IntelliJ IDEA（推荐）、VS Code 等 |
 
 ### 初始化数据库
 
@@ -594,16 +654,20 @@ mysql -u root -p < doc/init_database.sql
 
 默认管理员账号：
 
-- 用户名：`admin`
-- 密码：`admin`
+- 用户名：`root`
+- 密码：`root`
+
+> 注意: 请根据自己安装的数据库信息进行修改用户名和密码, 给出的默认管理员账号仅是本人自己的数据库
 
 ### 修改配置
 
 编辑 `spring-ai-rag-knowledge-database/src/main/resources/` 下的配置文件：
 
-1. `rdb-datasource.yml` - 设置 MySQL 连接信息
-2. `llm-model.yml` - 设置 Ollama 服务地址和模型名称
-3. `vdb-datasource.yml` - 设置 Redis 连接信息
+1. `rdb-datasource.yml` - 设置 MySQL 连接信息（用户名、密码、数据库名）
+2. `llm-model.yml` - 设置 LLM 模型配置：
+   - **OpenAI API**：设置 `api-key`、`base-url`、`chat.model`（必需）
+   - **Ollama**：设置 `base-url`、`embedding.model`（已默认配置）
+3. `vdb-datasource.yml` - 设置 Redis 连接信息（主机、端口、密码）
 4. `file.yml` - 设置文件上传存储路径
 5. `rdb.yml` - 设置需要跳过自动填充的表（可选）
 
@@ -668,12 +732,11 @@ mvn spring-boot:run -pl spring-ai-rag-knowledge-database
 1. 创建新的 Function Callback 类，使用 `@Component` 注解
 2. 在方法上添加 `@Tool` 注解，并提供详细的 `description`
 3. 方法参数使用 `@ToolParam` 注解描述参数用途
-4. 在 `ChatClientConfiguration` 中注册该工具（通过 `.tools()` 方法）
+4. 在 `ChatClientConfiguration` 中注册该工具（通过 `.defaultTools()` 方法）
 
 **示例**：
 
 ```java
-
 @Component
 public class MyCustomFunction {
 
@@ -684,6 +747,34 @@ public class MyCustomFunction {
         // 实现逻辑
         return "结果";
     }
+}
+```
+
+**注册工具**：
+
+在 `ChatClientConfiguration.java` 的 `chatClient` 方法中：
+
+1. 将你的 Function Callback 类作为参数注入到方法中
+2. 在 `.defaultTools()` 中添加该工具（可添加多个工具）
+
+```java
+@Bean
+public ChatClient chatClient(
+        OpenAiChatModel openAiChatModel,
+        CustomSimpleLoggerAdvisor customSimpleLoggerAdvisor,
+        SimpleLoggerAdvisor simpleLoggerAdvisor,
+        @Lazy DocumentToolFunction documentToolFunction,
+        @Lazy MyCustomFunction myCustomFunction  // ← 注入你的工具
+) {
+    return ChatClient
+            .builder(openAiChatModel)
+            .defaultAdvisors(
+                    customSimpleLoggerAdvisor,
+                    simpleLoggerAdvisor
+            )
+            // 注册多个工具
+            .defaultTools(documentToolFunction, myCustomFunction)  // ← 添加你的工具
+            .build();
 }
 ```
 
