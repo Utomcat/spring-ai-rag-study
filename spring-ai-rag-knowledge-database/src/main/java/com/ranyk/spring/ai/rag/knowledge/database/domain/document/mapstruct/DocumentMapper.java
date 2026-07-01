@@ -85,7 +85,9 @@ public interface DocumentMapper {
             @Mapping(target = "keyword", ignore = true),
             @Mapping(target = "page", ignore = true),
             @Mapping(target = "size", ignore = true),
-            @Mapping(target = "total", ignore = true)
+            @Mapping(target = "total", ignore = true),
+            @Mapping(target = "categoryIds", ignore = true),
+            @Mapping(target = "fileTypes", ignore = true)
     })
     DocumentDTO documentToDocumentDTO(Document document);
 
