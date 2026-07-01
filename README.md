@@ -39,8 +39,10 @@ spring-ai-rag-study/
         ├── java/com/ranyk/spring/ai/rag/knowledge/database/
         │   ├── SpringAiRagKnowledgeDatabaseApplication.java  # 启动类
         │   ├── ai/                   # AI 相关
-        │   │   └── advisor/           # 自定义 Advisor
-        │   │       └── CustomSimpleLoggerAdvisor.java
+        │   │   ├── advisor/           # 自定义 Advisor
+        │   │   │   └── CustomSimpleLoggerAdvisor.java
+        │   │   └── function/          # Function Callback 工具
+        │   │       └── ListKnowledgeFilesFunction.java  # 知识库文件列表查询工具
         │   ├── api/                  # REST API 接口层
         │   │   ├── auth/              # 认证接口
         │   │   │   └── AuthApi.java
@@ -190,9 +192,10 @@ spring-ai-rag-study/
 - **用户认证**：JWT Token 认证，支持登录、密码加密存储
 - **用户管理**：用户 CRUD、头像上传、密码修改、个人资料更新
 - **知识库分类**：分类的增删查，支持排序
-- **文档管理**：支持多文件上传、Tika 解析、Markdown 解析、文档向量化、向量存储
+- **文档管理**：支持多文件上传、Tika 解析、Markdown 解析、文档向量化、向量存储、文件列表查询
 - **向量检索**：基于 Redis Vector Store 实现相似度检索
 - **智能问答**：结合 RAG 向量检索与 LLM 生成回答，支持引用文档展示
+- **Function Calling**：支持 AI 工具调用，可查询知识库文件列表等扩展能力
 - **聊天会话**：支持多轮对话、会话列表、会话删除、上下文记忆
 - **统计仪表盘**：管理员概览统计数据
 - **系统日志**：操作日志记录
@@ -247,6 +250,7 @@ graph TB
 
         subgraph AI[AI 能力层]
             ChatClient[ChatClient]
+            FunctionCallback[Function Callback<br/>工具调用]
             VectorStoreAdvisor[VectorStoreAdvisor]
             EmbeddingModel[EmbeddingModel]
             ChatMemory[ChatMemory]
@@ -300,6 +304,7 @@ graph TB
     RagIngestService --> DocumentSplitter
     RagIngestService --> EmbeddingModel
     ChatMessageService --> ChatClient
+    ChatClient --> FunctionCallback
     ChatClient --> VectorStoreAdvisor
     ChatClient --> ChatMemory
 
@@ -440,14 +445,34 @@ flowchart TD
     GetSession -->|是| LoadSession[加载会话及历史消息<br/>ChatMemory]
     GetSession -->|否| CreateSession[创建新会话<br/>t_chat_session]
     CreateSession --> LoadSession
-    LoadSession --> Retrieve[VectorStoreAdvisor 向量检索<br/>从 Redis 检索相关文档]
-    Retrieve --> BuildPrompt[构建 Prompt<br/>问题 + 上下文文档]
+    LoadSession --> IntentDetect{LLM 意图识别}
+    IntentDetect -->|需要工具调用| CallTool[调用 Function Callback<br/>如查询文件列表]
+    IntentDetect -->|向量检索| Retrieve[VectorStoreAdvisor 向量检索<br/>从 Redis 检索相关文档]
+    CallTool --> BuildPrompt[构建 Prompt<br/>问题 + 工具返回结果]
+    Retrieve --> BuildPrompt
     BuildPrompt --> CallLLM[调用 Ollama LLM 生成回答<br/>ChatClient]
     CallLLM --> SaveMsg[保存用户消息和 AI 回答<br/>t_chat_message]
     SaveMsg --> SaveRefs[保存引用文档 refs JSON]
     SaveRefs --> UpdateSession[更新会话时间]
     UpdateSession --> Return[返回回答及引用文档]
     Return --> End([结束])
+```
+
+#### Function Calling 工具调用流程
+
+```mermaid
+flowchart TD
+    Start([用户提问]) --> Input[用户输入: '知识库中有哪些文件?']
+    Input --> LLM[LLM 意图分析]
+    LLM --> MatchTool{匹配到工具?}
+    MatchTool -->|是| CallFunc[调用 ListKnowledgeFilesFunction]
+    MatchTool -->|否| NormalRAG[执行常规 RAG 检索]
+    CallFunc --> QueryDB[DocumentService 查询数据库]
+    QueryDB --> ReturnList[返回文件名列表]
+    ReturnList --> LLMFormat[LLM 格式化结果为自然语言]
+    NormalRAG --> LLMFormat
+    LLMFormat --> Response[返回用户]
+    Response --> End([结束])
 ```
 
 #### 认证与授权流程
@@ -501,11 +526,12 @@ flowchart TD
 
 ### 文档接口
 
-| 接口                   | 方法     | 权限    | 说明       |
-|----------------------|--------|-------|----------|
-| `/api/document`      | POST   | ADMIN | 上传文档并向量化 |
-| `/api/document/list` | GET    | ADMIN | 分页查询文档   |
-| `/api/document/{id}` | DELETE | ADMIN | 删除文档及向量  |
+| 接口                      | 方法     | 权限    | 说明         |
+|-------------------------|--------|-------|------------|
+| `/api/document`         | POST   | ADMIN | 上传文档并向量化    |
+| `/api/document/list`    | GET    | ADMIN | 分页查询文档     |
+| `/api/document/filenames` | GET  | ADMIN | 获取知识库文件列表  |
+| `/api/document/{id}`    | DELETE | ADMIN | 删除文档及向量    |
 
 ### 聊天会话接口
 
@@ -604,6 +630,51 @@ mvn spring-boot:run -pl spring-ai-rag-knowledge-database
 ### 主模块
 
 `spring-ai-rag-knowledge-database` 是主业务模块，包含所有业务逻辑实现。
+
+## Function Calling 工具扩展
+
+本项目支持 Spring AI 的 Function Calling 机制，允许 LLM 在对话过程中自动调用预定义的工具方法。
+
+### 已实现的工具
+
+#### 1. ListKnowledgeFilesFunction - 知识库文件列表查询
+
+**功能**：查询知识库中已上传的文件列表
+
+**触发场景**：
+- "知识库中有哪些文件？"
+- "列出所有文档"
+- "当前有什么文件？"
+- 其他询问知识库文件的相关问题
+
+**实现位置**：`com.ranyk.spring.ai.rag.knowledge.database.ai.function.ListKnowledgeFilesFunction`
+
+**使用方式**：
+- 用户通过自然语言提问
+- LLM 自动识别意图并调用工具
+- 返回格式化的文件名列表（自然语言）
+
+### 如何扩展新工具
+
+1. 创建新的 Function Callback 类，使用 `@Component` 注解
+2. 在方法上添加 `@Tool` 注解，并提供详细的 `description`
+3. 方法参数使用 `@ToolParam` 注解描述参数用途
+4. 在 `ChatClientConfiguration` 中注册该工具（通过 `.tools()` 方法）
+
+**示例**：
+```java
+@Component
+public class MyCustomFunction {
+    
+    @Tool(description = "工具的描述，告诉 LLM 这个工具的用途")
+    public String myMethod(
+        @ToolParam(description = "参数描述") String param
+    ) {
+        // 实现逻辑
+        return "结果";
+    }
+}
+```
 
 ## License
 
