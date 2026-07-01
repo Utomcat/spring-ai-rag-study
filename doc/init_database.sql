@@ -25,8 +25,8 @@ CREATE TABLE t_user
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='用户表';
-INSERT INTO t_user (username, password, real_name, role, status)
-VALUES ('admin', '$2a$10$mz4rExfImEzO4yoxMaTAreywcjF8xxpl0bZVILGGgVKWZVVPwGaf2', '系统管理员', 'ADMIN', 1);
+INSERT INTO t_user (username, password, real_name, role, status, create_by, create_time, update_by, update_time)
+VALUES ('admin', '$2a$10$mz4rExfImEzO4yoxMaTAreywcjF8xxpl0bZVILGGgVKWZVVPwGaf2', '系统管理员', 'ADMIN', 1, 1, current_timestamp, 1, current_timestamp);
 
 -- 知识库分类表
 DROP TABLE IF EXISTS t_kb_category;
