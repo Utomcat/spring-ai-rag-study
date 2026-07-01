@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.service.file;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import com.ranyk.spring.ai.rag.knowledge.database.base.domain.dto.StoredFile;
 import com.ranyk.spring.ai.rag.knowledge.database.common.exception.FileException;
@@ -33,7 +34,9 @@ public class FileStorageService {
      * 文件属性配置类对象
      */
     private final FileProperties fileProperties;
-
+    /**
+     * 日期格式化对象 - 用于格式化日期为 yyyyMMdd 格式
+     */
     private static final DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT);
 
     /**
@@ -94,5 +97,26 @@ public class FileStorageService {
                 throw new FileException("file.upload.error", new String[]{file.getOriginalFilename(), e.getMessage()});
             }
         }).toList();
+    }
+
+    /**
+     * 删除文件 - 根据文件路径删除文件, 删除文件或目录（递归删除, 不判断是否为空）, 这个方法相当于Linux的delete命令
+     *
+     * @param path 文件路径
+     * @return 删除结果
+     */
+    public Boolean delete(String path) {
+        return FileUtil.del(Paths.get(path));
+    }
+
+    /**
+     * 批量删除文件 - 根据文件路径列表批量删除文件
+     * 注意：此方法为非原子性操作，若中间某个文件删除失败，之前已删除的文件无法恢复
+     *
+     * @param paths 文件路径列表
+     * @return 全部删除成功返回 true，任一文件删除失败返回 false
+     */
+    public Boolean batchDelete(List<String> paths) {
+        return paths.stream().allMatch(this::delete);
     }
 }
